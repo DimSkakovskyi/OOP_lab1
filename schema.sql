@@ -28,9 +28,3 @@ CREATE TABLE payments (
     description VARCHAR(255),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
-//CRUD operations
-//Create
-INSERT INTO accounts(user_id, account_number, balance, is_blocked)
-VALUES ($1, $2, $3, $4);
-
