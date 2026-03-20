@@ -1,16 +1,16 @@
 const AccountService = require('../services/AccountService');
 const { parseBody } = require('../utils/bodyParser');
+const AuthMiddleware = require('../middleware/AuthMiddleware');
 const {
   renderView,
   redirect,
   sendError,
-  requireAuth,
 } = require('./helpers');
 
 class AccountController {
   static async listUserAccounts(req, res) {
     try {
-      const currentUser = requireAuth(req, res);
+      const currentUser = AuthMiddleware.requireAuth(req, res);
 
       if (!currentUser) {
         return;
@@ -30,7 +30,7 @@ class AccountController {
 
   static async showAccountDetails(req, res) {
     try {
-      const currentUser = requireAuth(req, res);
+      const currentUser = AuthMiddleware.requireAuth(req, res);
 
       if (!currentUser) {
         return;
@@ -62,7 +62,7 @@ class AccountController {
 
   static async blockAccount(req, res) {
     try {
-      const currentUser = requireAuth(req, res);
+      const currentUser = AuthMiddleware.requireAuth(req, res);
 
       if (!currentUser) {
         return;

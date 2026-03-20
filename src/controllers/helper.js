@@ -1,18 +1,16 @@
-const path = require('path');
-const ejs = require('ejs');
-const { parseCookies } = require('../utils/cookies');
-const { getSession } = require('../utils/sessionStore');
+const React = require('react');
+const ReactDOMServer = require('react-dom/server');
 
-async function renderView(res, viewName, data = {}) {
-  const filePath = path.join(__dirname, '..', 'views', viewName);
-
-  const html = await ejs.renderFile(filePath, data);
+function renderReactView(res, Component, props = {}) {
+  const html = ReactDOMServer.renderToStaticMarkup(
+    React.createElement(Component, props)
+  );
 
   res.writeHead(200, {
     'Content-Type': 'text/html; charset=utf-8',
   });
 
-  res.end(html);
+  res.end(`<!DOCTYPE html>${html}`);
 }
 
 function redirect(res, location) {
@@ -27,54 +25,8 @@ function sendError(res, statusCode, message) {
   res.end(message);
 }
 
-function getCurrentUser(req) {
-  const cookies = parseCookies(req.headers.cookie || '');
-  const sessionId = cookies.sessionId;
-
-  if (!sessionId) {
-    return null;
-  }
-
-  const session = getSession(sessionId);
-
-  if (!session) {
-    return null;
-  }
-
-  return session.user;
-}
-
-function requireAuth(req, res) {
-  const currentUser = getCurrentUser(req);
-
-  if (!currentUser) {
-    redirect(res, '/login');
-    return null;
-  }
-
-  return currentUser;
-}
-
-function requireAdmin(req, res) {
-  const currentUser = requireAuth(req, res);
-
-  if (!currentUser) {
-    return null;
-  }
-
-  if (currentUser.role !== 'ADMIN') {
-    sendError(res, 403, 'Access denied');
-    return null;
-  }
-
-  return currentUser;
-}
-
 module.exports = {
-  renderView,
+  renderReactView,
   redirect,
   sendError,
-  getCurrentUser,
-  requireAuth,
-  requireAdmin,
 };

@@ -1,16 +1,16 @@
 const AdminService = require('../services/AdminService');
 const { parseBody } = require('../utils/bodyParser');
+const RoleMiddleware = require('../middleware/RoleMiddleware');
 const {
   renderView,
   redirect,
   sendError,
-  requireAdmin,
 } = require('./helpers');
 
 class AdminController {
   static async listAllAccounts(req, res) {
     try {
-      const currentUser = requireAdmin(req, res);
+      const currentUser = RoleMiddleware.requireAdmin(req, res);
 
       if (!currentUser) {
         return;
@@ -32,7 +32,7 @@ class AdminController {
 
   static async unblockAccount(req, res) {
     try {
-      const currentUser = requireAdmin(req, res);
+      const currentUser = RoleMiddleware.requireAdmin(req, res);
 
       if (!currentUser) {
         return;

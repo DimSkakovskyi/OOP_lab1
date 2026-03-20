@@ -2,17 +2,17 @@ const AuthService = require('../services/AuthService');
 const { parseBody } = require('../utils/bodyParser');
 const { parseCookies } = require('../utils/cookies');
 const { createSession, deleteSession } = require('../utils/sessionStore');
+const AuthMiddleware = require('../middleware/AuthMiddleware');
 const {
   renderView,
   redirect,
   sendError,
-  getCurrentUser,
 } = require('./helpers');
 
 class AuthController {
   static async showLoginPage(req, res) {
     try {
-      const currentUser = getCurrentUser(req);
+      const currentUser = AuthMiddleware.getCurrentUser(req);
 
       if (currentUser) {
         if (currentUser.role === 'ADMIN') {

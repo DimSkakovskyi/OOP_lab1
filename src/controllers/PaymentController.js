@@ -1,15 +1,15 @@
 const PaymentService = require('../services/PaymentService');
 const { parseBody } = require('../utils/bodyParser');
+const AuthMiddleware = require('../middleware/AuthMiddleware');
 const {
   redirect,
   sendError,
-  requireAuth,
 } = require('./helpers');
 
 class PaymentController {
   static async createPayment(req, res) {
     try {
-      const currentUser = requireAuth(req, res);
+      const currentUser = AuthMiddleware.requireAuth(req, res);
 
       if (!currentUser) {
         return;
@@ -39,7 +39,7 @@ class PaymentController {
 
   static async createTopUp(req, res) {
     try {
-      const currentUser = requireAuth(req, res);
+      const currentUser = AuthMiddleware.requireAuth(req, res);
 
       if (!currentUser) {
         return;
