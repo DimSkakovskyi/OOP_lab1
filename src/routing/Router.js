@@ -13,9 +13,10 @@ class Router {
   handle(req, res) {
 
     // r - element of the array
-    const route = this.routes.find(r =>
-      r.method === req.method &&
-      r.path === req.url
+    const pathname = new URL(req.url, 'http://localhost:3000').pathname;
+
+    const route = this.routes.find(
+      (r) => r.method === req.method && r.path === pathname
     );
 
     if (route) {
