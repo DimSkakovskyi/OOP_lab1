@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>
+    <%= title %>
+  </title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: 40px auto;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .account-card {
+      border: 1px solid #ccc;
+      padding: 16px;
+      margin-bottom: 16px;
+      border-radius: 8px;
+    }
+
+    .blocked {
+      color: red;
+      font-weight: bold;
+    }
+
+    .active {
+      color: green;
+      font-weight: bold;
+    }
+
+    button {
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div>
+      <h1>Admin Panel</h1>
+      <p>User: <strong>
+          <%= currentUser.login %>
+        </strong> | Role: <strong>
+          <%= currentUser.role %>
+        </strong></p>
+    </div>
+
+    <form method="POST" action="/logout">
+      <button type="submit">Logout</button>
+    </form>
+  </div>
+
+  <h2>All Accounts</h2>
+
+  <% if (!accounts || accounts.length===0) { %>
+    <p>No accounts found.</p>
+    <% } %>
+
+      <% accounts.forEach(account=> { %>
+        <div class="account-card">
+          <p><strong>Account ID:</strong>
+            <%= account.id %>
+          </p>
+          <p><strong>User ID:</strong>
+            <%= account.user_id %>
+          </p>
+          <p><strong>Account Number:</strong>
+            <%= account.account_number %>
+          </p>
+          <p><strong>Balance:</strong>
+            <%= account.balance %>
+          </p>
+          <p>
+            <strong>Status:</strong>
+            <% if (account.is_blocked) { %>
+              <span class="blocked">Blocked</span>
+              <% } else { %>
+                <span class="active">Active</span>
+                <% } %>
+          </p>
+
+          <% if (account.is_blocked) { %>
+            <form method="POST" action="/admin/accounts/unblock">
+              <input type="hidden" name="accountId" value="<%= account.id %>" />
+              <button type="submit">Unblock Account</button>
+            </form>
+            <% } %>
+        </div>
+        <% }) %>
+
+          <h2>Blocked Accounts</h2>
+
+          <% if (!blockedAccounts || blockedAccounts.length===0) { %>
+            <p>No blocked accounts.</p>
+            <% } else { %>
+              <ul>
+                <% blockedAccounts.forEach(account=> { %>
+                  <li>
+                    Account <strong>
+                      <%= account.account_number %>
+                    </strong>
+                    (ID: <%= account.id %>)
+                  </li>
+                  <% }) %>
+              </ul>
+              <% } %>
+</body>
+
+</html>

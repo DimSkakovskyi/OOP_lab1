@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>
+    <%= title %>
+  </title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: 40px auto;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .section {
+      border: 1px solid #ccc;
+      padding: 16px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+    }
+
+    form {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 350px;
+    }
+
+    input,
+    button {
+      padding: 10px;
+      font-size: 15px;
+    }
+
+    ul {
+      padding-left: 20px;
+    }
+
+    .blocked {
+      color: red;
+      font-weight: bold;
+    }
+
+    .active {
+      color: green;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div>
+      <h1>Account Details</h1>
+      <p>User: <strong>
+          <%= currentUser.login %>
+        </strong></p>
+    </div>
+
+    <div>
+      <a href="/accounts">
+        <button type="button">Back to Accounts</button>
+      </a>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Main Information</h2>
+    <p><strong>Account ID:</strong>
+      <%= account.id %>
+    </p>
+    <p><strong>Account Number:</strong>
+      <%= account.account_number %>
+    </p>
+    <p><strong>Balance:</strong>
+      <%= account.balance %>
+    </p>
+    <p>
+      <strong>Status:</strong>
+      <% if (account.is_blocked) { %>
+        <span class="blocked">Blocked</span>
+        <% } else { %>
+          <span class="active">Active</span>
+          <% } %>
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>Cards</h2>
+    <% if (!cards || cards.length===0) { %>
+      <p>No cards found.</p>
+      <% } else { %>
+        <ul>
+          <% cards.forEach(card=> { %>
+            <li>
+              Card Number: <strong>
+                <%= card.card_number %>
+              </strong>,
+              Expiry: <strong>
+                <%= card.expiry_date %>
+              </strong>
+            </li>
+            <% }) %>
+        </ul>
+        <% } %>
+  </div>
+
+  <div class="section">
+    <h2>Make Payment</h2>
+    <form method="POST" action="/payments/create">
+      <input type="hidden" name="accountId" value="<%= account.id %>" />
+      <input type="number" step="0.01" min="0.01" name="amount" placeholder="Amount" required />
+      <input type="text" name="description" placeholder="Payment description" />
+      <button type="submit">Pay</button>
+    </form>
+  </div>
+
+  <div class="section">
+    <h2>Top Up Account</h2>
+    <form method="POST" action="/topup/create">
+      <input type="hidden" name="accountId" value="<%= account.id %>" />
+      <input type="number" step="0.01" min="0.01" name="amount" placeholder="Amount" required />
+      <input type="text" name="description" placeholder="Top up description" />
+      <button type="submit">Top Up</button>
+    </form>
+  </div>
+
+  <div class="section">
+    <h2>Block Account</h2>
+    <form method="POST" action="/accounts/block">
+      <input type="hidden" name="accountId" value="<%= account.id %>" />
+      <button type="submit">Block Account</button>
+    </form>
+  </div>
+
+  <div class="section">
+    <h2>Payment History</h2>
+    <% if (!payments || payments.length===0) { %>
+      <p>No payment history found.</p>
+      <% } else { %>
+        <ul>
+          <% payments.forEach(payment=> { %>
+            <li>
+              <strong>
+                <%= payment.type %>
+              </strong> —
+              amount: <strong>
+                <%= payment.amount %>
+              </strong>,
+              description: <strong>
+                <%= payment.description || '—' %>
+              </strong>,
+              created at: <strong>
+                <%= payment.created_at %>
+              </strong>
+            </li>
+            <% }) %>
+        </ul>
+        <% } %>
+  </div>
+</body>
+
+</html>

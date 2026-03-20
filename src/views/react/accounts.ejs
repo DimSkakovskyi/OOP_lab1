@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>
+    <%= title %>
+  </title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .account-card {
+      border: 1px solid #ccc;
+      padding: 16px;
+      margin-bottom: 16px;
+      border-radius: 8px;
+    }
+
+    .blocked {
+      color: red;
+      font-weight: bold;
+    }
+
+    .active {
+      color: green;
+      font-weight: bold;
+    }
+
+    button {
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    a {
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div>
+      <h1>My Accounts</h1>
+      <p>User: <strong>
+          <%= currentUser.login %>
+        </strong> | Role: <strong>
+          <%= currentUser.role %>
+        </strong></p>
+    </div>
+
+    <form method="POST" action="/logout">
+      <button type="submit">Logout</button>
+    </form>
+  </div>
+
+  <% if (!accounts || accounts.length===0) { %>
+    <p>No accounts found.</p>
+    <% } %>
+
+      <% accounts.forEach(account=> { %>
+        <div class="account-card">
+          <p><strong>Account ID:</strong>
+            <%= account.id %>
+          </p>
+          <p><strong>Account Number:</strong>
+            <%= account.account_number %>
+          </p>
+          <p><strong>Balance:</strong>
+            <%= account.balance %>
+          </p>
+          <p>
+            <strong>Status:</strong>
+            <% if (account.is_blocked) { %>
+              <span class="blocked">Blocked</span>
+              <% } else { %>
+                <span class="active">Active</span>
+                <% } %>
+          </p>
+
+          <a href="/account?id=<%= account.id %>">
+            <button type="button">Open Account</button>
+          </a>
+        </div>
+        <% }) %>
+</body>
+
+</html>
