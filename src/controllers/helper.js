@@ -1,16 +1,16 @@
-const React = require('react');
-const ReactDOMServer = require('react-dom/server');
+const path = require('path');
+const ejs = require('ejs');
 
-function renderReactView(res, Component, props = {}) {
-  const html = ReactDOMServer.renderToStaticMarkup(
-    React.createElement(Component, props)
-  );
+async function renderView(res, viewName, data = {}) {
+  const filePath = path.join(__dirname, '..', 'views', viewName);
+
+  const html = await ejs.renderFile(filePath, data);
 
   res.writeHead(200, {
     'Content-Type': 'text/html; charset=utf-8',
   });
 
-  res.end(`<!DOCTYPE html>${html}`);
+  res.end(html);
 }
 
 function redirect(res, location) {
@@ -26,7 +26,7 @@ function sendError(res, statusCode, message) {
 }
 
 module.exports = {
-  renderReactView,
+  renderView,
   redirect,
   sendError,
 };

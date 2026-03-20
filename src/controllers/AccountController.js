@@ -1,11 +1,7 @@
 const AccountService = require('../services/AccountService');
 const { parseBody } = require('../utils/bodyParser');
 const AuthMiddleware = require('../middleware/AuthMiddleware');
-const {
-  renderView,
-  redirect,
-  sendError,
-} = require('./helpers');
+const { renderView, redirect, sendError } = require('./helpers');
 
 class AccountController {
   static async listUserAccounts(req, res) {

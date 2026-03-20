@@ -3,11 +3,7 @@ const { parseBody } = require('../utils/bodyParser');
 const { parseCookies } = require('../utils/cookies');
 const { createSession, deleteSession } = require('../utils/sessionStore');
 const AuthMiddleware = require('../middleware/AuthMiddleware');
-const {
-  renderView,
-  redirect,
-  sendError,
-} = require('./helpers');
+const { renderView, redirect, sendError } = require('./helpers');
 
 class AuthController {
   static async showLoginPage(req, res) {

@@ -1,10 +1,7 @@
 const PaymentService = require('../services/PaymentService');
 const { parseBody } = require('../utils/bodyParser');
 const AuthMiddleware = require('../middleware/AuthMiddleware');
-const {
-  redirect,
-  sendError,
-} = require('./helpers');
+const { redirect, sendError } = require('./helpers');
 
 class PaymentController {
   static async createPayment(req, res) {

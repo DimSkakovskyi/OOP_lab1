@@ -1,11 +1,7 @@
 const AdminService = require('../services/AdminService');
 const { parseBody } = require('../utils/bodyParser');
 const RoleMiddleware = require('../middleware/RoleMiddleware');
-const {
-  renderView,
-  redirect,
-  sendError,
-} = require('./helpers');
+const { renderView, redirect, sendError } = require('./helpers');
 
 class AdminController {
   static async listAllAccounts(req, res) {
