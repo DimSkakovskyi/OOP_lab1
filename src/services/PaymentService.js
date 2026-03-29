@@ -1,64 +1,114 @@
 const AccountDAO = require('../dao/AccountDAO');
-const CardDAO = require('../dao/CardDAO');
 const PaymentDAO = require('../dao/PaymentDAO');
 
-class AccountService {
-  static async getUserAccounts(userId) {
-    return AccountDAO.findByUserId(userId);
+class PaymentService {
+  static normalizeAmount(amount) {
+    const parsedAmount = Number(amount);
+
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      throw new Error('Amount must be greater than 0');
+    }
+
+    return parsedAmount;
   }
 
-  static async getAccountDetails(userId, accountId) {
-    const account = await AccountDAO.findById(accountId);
+  static async createPayment(userId, accountId, amount, description = '') {
+    const numericUserId = Number(userId);
+    const numericAccountId = Number(accountId);
+    const parsedAmount = this.normalizeAmount(amount);
+
+    const account = await AccountDAO.findById(numericAccountId);
 
     if (!account) {
       throw new Error('Account not found');
     }
 
-    if (account.user_id !== userId) {
-      throw new Error('Access denied');
-    }
-
-    const cards = await CardDAO.findByAccountId(accountId);
-    const payments = await PaymentDAO.findByAccountId(accountId);
-
-    return {
-      account,
-      cards,
-      payments,
-    };
-  }
-
-  static async blockAccount(userId, accountId) {
-    const account = await AccountDAO.findById(accountId);
-
-    if (!account) {
-      throw new Error('Account not found');
-    }
-
-    if (account.user_id !== userId) {
+    if (Number(account.user_id) !== numericUserId) {
       throw new Error('Access denied');
     }
 
     if (account.is_blocked) {
-      return account;
+      throw new Error('Account is blocked');
     }
 
-    return AccountDAO.block(accountId);
+    const currentBalance = Number(account.balance);
+
+    if (currentBalance < parsedAmount) {
+      throw new Error('Insufficient funds');
+    }
+
+    const newBalance = currentBalance - parsedAmount;
+
+    const updatedAccount = await AccountDAO.updateBalance(
+      numericAccountId,
+      newBalance
+    );
+
+    const payment = await PaymentDAO.create(
+      numericAccountId,
+      parsedAmount,
+      'PAYMENT',
+      description || 'Payment'
+    );
+
+    return {
+      updatedAccount,
+      payment,
+    };
   }
 
-  static async getOwnAccount(userId, accountId) {
-    const account = await AccountDAO.findById(accountId);
+  static async createTopUp(userId, accountId, amount, description = '') {
+    const numericUserId = Number(userId);
+    const numericAccountId = Number(accountId);
+    const parsedAmount = this.normalizeAmount(amount);
+
+    const account = await AccountDAO.findById(numericAccountId);
 
     if (!account) {
       throw new Error('Account not found');
     }
 
-    if (account.user_id !== userId) {
+    if (Number(account.user_id) !== numericUserId) {
       throw new Error('Access denied');
     }
 
-    return account;
+    const currentBalance = Number(account.balance);
+    const newBalance = currentBalance + parsedAmount;
+
+    const updatedAccount = await AccountDAO.updateBalance(
+      numericAccountId,
+      newBalance
+    );
+
+    const payment = await PaymentDAO.create(
+      numericAccountId,
+      parsedAmount,
+      'TOPUP',
+      description || 'Top up'
+    );
+
+    return {
+      updatedAccount,
+      payment,
+    };
+  }
+
+  static async getAccountPayments(userId, accountId) {
+    const numericUserId = Number(userId);
+    const numericAccountId = Number(accountId);
+
+    const account = await AccountDAO.findById(numericAccountId);
+
+    if (!account) {
+      throw new Error('Account not found');
+    }
+
+    if (Number(account.user_id) !== numericUserId) {
+      throw new Error('Access denied');
+    }
+
+    return PaymentDAO.findByAccountId(numericAccountId);
   }
 }
 
-module.exports = AccountService;
+module.exports = PaymentService;
