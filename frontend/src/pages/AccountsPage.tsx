@@ -1,46 +1,35 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
-import { getAllAccountsRequest, unblockAccountRequest } from '../api/adminApi';
+import { getAccountsRequest } from '../api/accountApi';
 import type { Account } from '../types/account';
 import { getErrorMessage } from '../utils/getErrorMessage';
 
-export default function AdminAccountsPage() {
+export default function AccountsPage() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const loadAccounts = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await getAllAccountsRequest();
-      setAccounts(data);
-    } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Failed to load admin accounts'));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    void loadAccounts();
-  }, [loadAccounts]);
-
-  async function handleUnblock(accountId: number) {
-    setError('');
-
-    try {
-      await unblockAccountRequest(accountId);
-      await loadAccounts();
-    } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Unblock failed'));
+    async function loadAccounts() {
+      try {
+        const data = await getAccountsRequest();
+        setAccounts(data);
+      } catch (err: unknown) {
+        setError(getErrorMessage(err, 'Failed to load accounts'));
+      } finally {
+        setLoading(false);
+      }
     }
-  }
+
+    loadAccounts();
+  }, []);
 
   return (
     <Layout>
-      <h1>Admin Accounts</h1>
+      <h1>My Accounts</h1>
 
       {loading && <Loader />}
       {error && <ErrorMessage message={error} />}
@@ -58,11 +47,9 @@ export default function AdminAccountsPage() {
               </span>
             </p>
 
-            {account.isBlocked && (
-              <button onClick={() => handleUnblock(account.id)}>
-                Unblock Account
-              </button>
-            )}
+            <Link to={`/accounts/${account.id}`}>
+              <button>Open Account</button>
+            </Link>
           </div>
         ))}
       </div>
