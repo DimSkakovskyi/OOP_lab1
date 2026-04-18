@@ -1,23 +1,15 @@
-// const AuthMiddleware = require('./AuthMiddleware');
+import { NextFunction, Request, Response } from 'express';
 
-// class RoleMiddleware {
-//   static requireAdmin(req, res) {
-//     const currentUser = AuthMiddleware.requireAuth(req, res);
+export function roleMiddleware(role: 'ADMIN' | 'CLIENT') {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
 
-//     if (!currentUser) {
-//       return null;
-//     }
+    if (req.user.role !== role) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
 
-//     if (currentUser.role !== 'ADMIN') {
-//       res.writeHead(403, {
-//         'Content-Type': 'text/plain; charset=utf-8',
-//       });
-//       res.end('Access denied');
-//       return null;
-//     }
-
-//     return currentUser;
-//   }
-// }
-
-// module.exports = RoleMiddleware;
+    next();
+  };
+}

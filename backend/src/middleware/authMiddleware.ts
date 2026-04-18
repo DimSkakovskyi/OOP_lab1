@@ -1,35 +1,20 @@
-// const { parseCookies } = require('../utils/cookies');
-// const { getSession } = require('../utils/sessionStore');
+import { NextFunction, Request, Response } from 'express';
+import { verifyToken } from '../utils/jwt';
 
-// class AuthMiddleware {
-//   static getCurrentUser(req) {
-//     const cookies = parseCookies(req.headers.cookie || '');
-//     const sessionId = cookies.sessionId;
+export function authMiddleware(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
 
-//     if (!sessionId) {
-//       return null;
-//     }
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
 
-//     const session = getSession(sessionId);
+  const token = authHeader.split(' ')[1];
 
-//     if (!session) {
-//       return null;
-//     }
-
-//     return session.user;
-//   }
-
-//   static requireAuth(req, res) {
-//     const currentUser = this.getCurrentUser(req);
-
-//     if (!currentUser) {
-//       res.writeHead(302, { Location: '/login' });
-//       res.end();
-//       return null;
-//     }
-
-//     return currentUser;
-//   }
-// }
-
-// module.exports = AuthMiddleware;
+  try {
+    const payload = verifyToken(token);
+    req.user = payload;
+    next();
+  } catch {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+}
