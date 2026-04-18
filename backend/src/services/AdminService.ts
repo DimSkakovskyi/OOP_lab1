@@ -1,39 +1,25 @@
-// const AccountDAO = require('../dao/AccountDAO');
+import { prisma } from '../config/prisma';
+import { ApiError } from '../utils/apiError';
 
-// class AdminService {
-//   static ensureAdmin(currentUser) {
-//     if (!currentUser || currentUser.role !== 'ADMIN') {
-//       throw new Error('Access denied');
-//     }
-//   }
+export class AdminService {
+  static async getAllAccounts() {
+    return prisma.account.findMany({
+      orderBy: { id: 'asc' },
+    });
+  }
 
-//   static async getAllAccounts(currentUser) {
-//     this.ensureAdmin(currentUser);
-//     return AccountDAO.findAll();
-//   }
+  static async unblockAccount(accountId: number) {
+    const account = await prisma.account.findUnique({
+      where: { id: accountId },
+    });
 
-//   static async getBlockedAccounts(currentUser) {
-//     this.ensureAdmin(currentUser);
+    if (!account) {
+      throw new ApiError(404, 'Account not found');
+    }
 
-//     const accounts = await AccountDAO.findAll();
-//     return accounts.filter((account) => account.is_blocked);
-//   }
-
-//   static async unblockAccount(currentUser, accountId) {
-//     this.ensureAdmin(currentUser);
-
-//     const account = await AccountDAO.findById(accountId);
-
-//     if (!account) {
-//       throw new Error('Account not found');
-//     }
-
-//     if (!account.is_blocked) {
-//       return account;
-//     }
-
-//     return AccountDAO.unblock(accountId);
-//   }
-// }
-
-// module.exports = AdminService;
+    return prisma.account.update({
+      where: { id: accountId },
+      data: { isBlocked: false },
+    });
+  }
+}

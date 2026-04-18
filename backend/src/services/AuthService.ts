@@ -1,48 +1,72 @@
-// const bcrypt = require('bcrypt');
-// const UserDAO = require('../dao/UserDAO');
+import { prisma } from '../config/prisma';
+import { ApiError } from '../utils/apiError';
+import { comparePassword, hashPassword } from '../utils/password';
+import { generateToken } from '../utils/jwt';
 
-// class AuthService {
-//   static async login(login, plainPassword) {
-//     const user = await UserDAO.findByLogin(login);
+export class AuthService {
+  static async register(login: string, password: string) {
+    const existingUser = await prisma.user.findUnique({
+      where: { login },
+    });
 
-//     if (!user) {
-//       throw new Error('Invalid login or password');
-//     }
+    if (existingUser) {
+      throw new ApiError(400, 'User already exists');
+    }
 
-//     const isPasswordValid = await bcrypt.compare(plainPassword, user.password);
+    const hashed = await hashPassword(password);
 
-//     if (!isPasswordValid) {
-//       throw new Error('Invalid login or password');
-//     }
+    const user = await prisma.user.create({
+      data: {
+        login,
+        password: hashed,
+        role: 'CLIENT',
+      },
+    });
 
-//     return {
-//       id: user.id,
-//       login: user.login,
-//       role: user.role,
-//     };
-//   }
+    const token = generateToken({
+      id: user.id,
+      login: user.login,
+      role: user.role,
+    });
 
-//   static async register(login, plainPassword, role = 'CLIENT') {
-//     const existingUser = await UserDAO.findByLogin(login);
+    return {
+      token,
+      user: {
+        id: user.id,
+        login: user.login,
+        role: user.role,
+      },
+    };
+  }
 
-//     if (existingUser) {
-//       throw new Error('User with this login already exists');
-//     }
+  static async login(login: string, password: string) {
+    const user = await prisma.user.findUnique({
+      where: { login },
+    });
 
-//     const hashedPassword = await bcrypt.hash(plainPassword, 10);
+    if (!user) {
+      throw new ApiError(400, 'Invalid credentials');
+    }
 
-//     return UserDAO.create(login, hashedPassword, role);
-//   }
+    const isValid = await comparePassword(password, user.password);
 
-//   static async getUserById(id) {
-//     const user = await UserDAO.findById(id);
+    if (!isValid) {
+      throw new ApiError(400, 'Invalid credentials');
+    }
 
-//     if (!user) {
-//       throw new Error('User not found');
-//     }
+    const token = generateToken({
+      id: user.id,
+      login: user.login,
+      role: user.role,
+    });
 
-//     return user;
-//   }
-// }
-
-// module.exports = AuthService;
+    return {
+      token,
+      user: {
+        id: user.id,
+        login: user.login,
+        role: user.role,
+      },
+    };
+  }
+}

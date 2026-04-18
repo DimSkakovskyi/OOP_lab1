@@ -1,64 +1,52 @@
-// const AccountDAO = require('../dao/AccountDAO');
-// const CardDAO = require('../dao/CardDAO');
-// const PaymentDAO = require('../dao/PaymentDAO');
+import { prisma } from '../config/prisma';
+import { ApiError } from '../utils/apiError';
 
-// class AccountService {
-//   static async getUserAccounts(userId) {
-//     return AccountDAO.findByUserId(userId);
-//   }
+export class AccountService {
+  static async getUserAccounts(userId: number) {
+    return prisma.account.findMany({
+      where: { userId },
+      orderBy: { id: 'asc' },
+    });
+  }
 
-//   static async getAccountDetails(userId, accountId) {
-//     const account = await AccountDAO.findById(accountId);
+  static async getAccountDetails(userId: number, accountId: number) {
+    const account = await prisma.account.findUnique({
+      where: { id: accountId },
+      include: {
+        cards: true,
+        payments: {
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
 
-//     if (!account) {
-//       throw new Error('Account not found');
-//     }
+    if (!account) {
+      throw new ApiError(404, 'Account not found');
+    }
 
-//     if (account.user_id !== userId) {
-//       throw new Error('Access denied');
-//     }
+    if (account.userId !== userId) {
+      throw new ApiError(403, 'Access denied');
+    }
 
-//     const cards = await CardDAO.findByAccountId(accountId);
-//     const payments = await PaymentDAO.findByAccountId(accountId);
+    return account;
+  }
 
-//     return {
-//       account,
-//       cards,
-//       payments,
-//     };
-//   }
+  static async blockAccount(userId: number, accountId: number) {
+    const account = await prisma.account.findUnique({
+      where: { id: accountId },
+    });
 
-//   static async blockAccount(userId, accountId) {
-//     const account = await AccountDAO.findById(accountId);
+    if (!account) {
+      throw new ApiError(404, 'Account not found');
+    }
 
-//     if (!account) {
-//       throw new Error('Account not found');
-//     }
+    if (account.userId !== userId) {
+      throw new ApiError(403, 'Access denied');
+    }
 
-//     if (account.user_id !== userId) {
-//       throw new Error('Access denied');
-//     }
-
-//     if (account.is_blocked) {
-//       return account;
-//     }
-
-//     return AccountDAO.block(accountId);
-//   }
-
-//   static async getOwnAccount(userId, accountId) {
-//     const account = await AccountDAO.findById(accountId);
-
-//     if (!account) {
-//       throw new Error('Account not found');
-//     }
-
-//     if (account.user_id !== userId) {
-//       throw new Error('Access denied');
-//     }
-
-//     return account;
-//   }
-// }
-
-// module.exports = AccountService;
+    return prisma.account.update({
+      where: { id: accountId },
+      data: { isBlocked: true },
+    });
+  }
+}

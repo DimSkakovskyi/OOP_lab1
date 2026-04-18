@@ -9,7 +9,7 @@ interface JwtPayload {
 
 export function generateToken(payload: JwtPayload): string {
   return jwt.sign(payload, env.jwtSecret, {
-    expiresIn: env.jwtExpiresIn,
+    expiresIn: env.jwtExpiresIn as jwt.SignOptions['expiresIn'],
   });
 }
 

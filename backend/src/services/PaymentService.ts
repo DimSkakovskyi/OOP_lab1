@@ -1,114 +1,94 @@
-// const AccountDAO = require('../dao/AccountDAO');
-// const PaymentDAO = require('../dao/PaymentDAO');
+import { prisma } from '../config/prisma';
+import { ApiError } from '../utils/apiError';
 
-// class PaymentService {
-//   static normalizeAmount(amount) {
-//     const parsedAmount = Number(amount);
+export class PaymentService {
+  static async createPayment(
+    userId: number,
+    accountId: number,
+    amount: number,
+    description?: string
+  ) {
+    const account = await prisma.account.findUnique({
+      where: { id: accountId },
+    });
 
-//     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-//       throw new Error('Amount must be greater than 0');
-//     }
+    if (!account) {
+      throw new ApiError(404, 'Account not found');
+    }
 
-//     return parsedAmount;
-//   }
+    if (account.userId !== userId) {
+      throw new ApiError(403, 'Access denied');
+    }
 
-//   static async createPayment(userId, accountId, amount, description = '') {
-//     const numericUserId = Number(userId);
-//     const numericAccountId = Number(accountId);
-//     const parsedAmount = this.normalizeAmount(amount);
+    if (account.isBlocked) {
+      throw new ApiError(400, 'Account is blocked');
+    }
 
-//     const account = await AccountDAO.findById(numericAccountId);
+    if (Number(account.balance) < amount) {
+      throw new ApiError(400, 'Insufficient funds');
+    }
 
-//     if (!account) {
-//       throw new Error('Account not found');
-//     }
+    return prisma.$transaction(async (tx) => {
+      const updatedAccount = await tx.account.update({
+        where: { id: accountId },
+        data: {
+          balance: {
+            decrement: amount,
+          },
+        },
+      });
 
-//     if (Number(account.user_id) !== numericUserId) {
-//       throw new Error('Access denied');
-//     }
+      const payment = await tx.payment.create({
+        data: {
+          accountId,
+          amount,
+          type: 'PAYMENT',
+          description,
+        },
+      });
 
-//     if (account.is_blocked) {
-//       throw new Error('Account is blocked');
-//     }
+      return { updatedAccount, payment };
+    });
+  }
 
-//     const currentBalance = Number(account.balance);
+  static async createTopUp(
+    userId: number,
+    accountId: number,
+    amount: number,
+    description?: string
+  ) {
+    const account = await prisma.account.findUnique({
+      where: { id: accountId },
+    });
 
-//     if (currentBalance < parsedAmount) {
-//       throw new Error('Insufficient funds');
-//     }
+    if (!account) {
+      throw new ApiError(404, 'Account not found');
+    }
 
-//     const newBalance = currentBalance - parsedAmount;
+    if (account.userId !== userId) {
+      throw new ApiError(403, 'Access denied');
+    }
 
-//     const updatedAccount = await AccountDAO.updateBalance(
-//       numericAccountId,
-//       newBalance
-//     );
+    return prisma.$transaction(async (tx) => {
+      const updatedAccount = await tx.account.update({
+        where: { id: accountId },
+        data: {
+          balance: {
+            increment: amount,
+          },
+        },
+      });
 
-//     const payment = await PaymentDAO.create(
-//       numericAccountId,
-//       parsedAmount,
-//       'PAYMENT',
-//       description || 'Payment'
-//     );
+      const payment = await tx.payment.create({
+        data: {
+          accountId,
+          amount,
+          type: 'TOPUP',
+          description,
+        },
+      });
 
-//     return {
-//       updatedAccount,
-//       payment,
-//     };
-//   }
-
-//   static async createTopUp(userId, accountId, amount, description = '') {
-//     const numericUserId = Number(userId);
-//     const numericAccountId = Number(accountId);
-//     const parsedAmount = this.normalizeAmount(amount);
-
-//     const account = await AccountDAO.findById(numericAccountId);
-
-//     if (!account) {
-//       throw new Error('Account not found');
-//     }
-
-//     if (Number(account.user_id) !== numericUserId) {
-//       throw new Error('Access denied');
-//     }
-
-//     const currentBalance = Number(account.balance);
-//     const newBalance = currentBalance + parsedAmount;
-
-//     const updatedAccount = await AccountDAO.updateBalance(
-//       numericAccountId,
-//       newBalance
-//     );
-
-//     const payment = await PaymentDAO.create(
-//       numericAccountId,
-//       parsedAmount,
-//       'TOPUP',
-//       description || 'Top up'
-//     );
-
-//     return {
-//       updatedAccount,
-//       payment,
-//     };
-//   }
-
-//   static async getAccountPayments(userId, accountId) {
-//     const numericUserId = Number(userId);
-//     const numericAccountId = Number(accountId);
-
-//     const account = await AccountDAO.findById(numericAccountId);
-
-//     if (!account) {
-//       throw new Error('Account not found');
-//     }
-
-//     if (Number(account.user_id) !== numericUserId) {
-//       throw new Error('Access denied');
-//     }
-
-//     return PaymentDAO.findByAccountId(numericAccountId);
-//   }
-// }
-
-// module.exports = PaymentService;
+      return { updatedAccount, payment };
+    });
+  }
+}
