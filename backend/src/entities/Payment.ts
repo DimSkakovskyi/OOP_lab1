@@ -21,7 +21,7 @@ export class Payment {
   @Column({ type: 'varchar' })
   type!: PaymentType;
 
-  @Column({ nullable: true })
+  @Column({ type: 'text', nullable: true })
   description!: string | null;
 
   @CreateDateColumn({ name: 'created_at' })

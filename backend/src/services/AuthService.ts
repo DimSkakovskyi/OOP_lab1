@@ -1,46 +1,65 @@
-import { prisma } from '../config/prisma';
+import { AppDataSource } from '../config/data-source';
+import { User } from '../entities/User';
+import { Account } from '../entities/Account';
 import { ApiError } from '../utils/apiError';
 import { comparePassword, hashPassword } from '../utils/password';
 import { generateToken } from '../utils/jwt';
+import { generateAccountNumber } from '../utils/accountNumber';
 
 export class AuthService {
   static async register(login: string, password: string) {
-    const existingUser = await prisma.user.findUnique({
-      where: { login },
-    });
+    return AppDataSource.transaction(async (manager) => {
+      const userRepository = manager.getRepository(User);
+      const accountRepository = manager.getRepository(Account);
 
-    if (existingUser) {
-      throw new ApiError(400, 'User already exists');
-    }
+      const existingUser = await userRepository.findOne({
+        where: { login },
+      });
 
-    const hashed = await hashPassword(password);
+      if (existingUser) {
+        throw new ApiError(400, 'User already exists');
+      }
 
-    const user = await prisma.user.create({
-      data: {
+      const hashedPassword = await hashPassword(password);
+
+      const user = userRepository.create({
         login,
-        password: hashed,
+        password: hashedPassword,
         role: 'CLIENT',
-      },
-    });
+      });
 
-    const token = generateToken({
-      id: user.id,
-      login: user.login,
-      role: user.role,
-    });
+      await userRepository.save(user);
 
-    return {
-      token,
-      user: {
+      const account = accountRepository.create({
+        userId: user.id,
+        accountNumber: generateAccountNumber(),
+        balance: 0,
+        isBlocked: false,
+      });
+
+      await accountRepository.save(account);
+
+      const token = generateToken({
         id: user.id,
         login: user.login,
         role: user.role,
-      },
-    };
+      });
+
+      return {
+        token,
+        user: {
+          id: user.id,
+          login: user.login,
+          role: user.role,
+        },
+      };
+    });
   }
 
   static async login(login: string, password: string) {
-    const user = await prisma.user.findUnique({
+    const userRepository = AppDataSource.getRepository(User);
+
+    const user = await userRepository.findOne({
       where: { login },
     });
 

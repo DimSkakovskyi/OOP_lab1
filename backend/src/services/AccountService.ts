@@ -1,23 +1,30 @@
-import { prisma } from '../config/prisma';
+import { AppDataSource } from '../config/data-source';
+import { Account } from '../entities/Account';
 import { ApiError } from '../utils/apiError';
 
 export class AccountService {
   static async getUserAccounts(userId: number) {
-    return prisma.account.findMany({
+    const accountRepository = AppDataSource.getRepository(Account);
+  
+    const accounts = await accountRepository.find({
       where: { userId },
-      orderBy: { id: 'asc' },
+      order: { id: 'ASC' },
     });
+  
+    return accounts.map((account) => ({
+      id: account.id,
+      accountNumber: account.accountNumber,
+      balance: Number(account.balance),
+      isBlocked: account.isBlocked,
+    }));
   }
-
+  
   static async getAccountDetails(userId: number, accountId: number) {
-    const account = await prisma.account.findUnique({
+    const accountRepository = AppDataSource.getRepository(Account);
+
+    const account = await accountRepository.findOne({
       where: { id: accountId },
-      include: {
-        cards: true,
-        payments: {
-          orderBy: { createdAt: 'desc' },
-        },
-      },
+      relations: ['cards', 'payments'],
     });
 
     if (!account) {
@@ -28,11 +35,28 @@ export class AccountService {
       throw new ApiError(403, 'Access denied');
     }
 
-    return account;
+    return {
+      account: {
+        id: account.id,
+        accountNumber: account.accountNumber,
+        balance: Number(account.balance),
+        isBlocked: account.isBlocked,
+      },
+      cards: account.cards ?? [],
+      payments: (account.payments ?? []).map((payment) => ({
+        id: payment.id,
+        amount: Number(payment.amount),
+        type: payment.type,
+        description: payment.description,
+        createdAt: payment.createdAt,
+      })),
+    };
   }
 
   static async blockAccount(userId: number, accountId: number) {
-    const account = await prisma.account.findUnique({
+    const accountRepository = AppDataSource.getRepository(Account);
+
+    const account = await accountRepository.findOne({
       where: { id: accountId },
     });
 
@@ -44,9 +68,7 @@ export class AccountService {
       throw new ApiError(403, 'Access denied');
     }
 
-    return prisma.account.update({
-      where: { id: accountId },
-      data: { isBlocked: true },
-    });
+    account.isBlocked = true;
+    return accountRepository.save(account);
   }
 }
