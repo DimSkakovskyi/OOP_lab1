@@ -65,6 +65,12 @@ export default function AdminAccountsPage() {
     <Layout>
       <h1>Admin Accounts</h1>
 
+      <div style={{ marginBottom: '16px' }}>
+        <Link to="/admin/create-user">
+          <button>Create User / Admin</button>
+        </Link>
+      </div>
+
       <form onSubmit={handleSearch}>
         <input
           type="text"

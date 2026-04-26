@@ -53,10 +53,33 @@ export class AdminController {
     }
   }
 
+  static async createClient(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { login, password } = req.body;
+      const result = await AdminService.createClient(login, password);
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+  
   static async createAdmin(req: Request, res: Response, next: NextFunction) {
     try {
       const { login, password } = req.body;
       const result = await AdminService.createAdmin(login, password);
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+  static async addCardToAccount(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { expiryDate } = req.body;
+      const result = await AdminService.addCardToAccount(
+        Number(req.params.id),
+        expiryDate
+      );
       res.status(201).json(result);
     } catch (error) {
       next(error);

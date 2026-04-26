@@ -10,6 +10,8 @@ import {
 } from '../api/adminApi';
 import type { AdminAccountDetails } from '../types/account';
 import { getErrorMessage } from '../utils/getErrorMessage';
+import { addCardToAccountRequest } from '../api/adminApi';
+import { validateExpiryDate } from '../utils/validateExpiryDate';
 
 export default function AdminAccountDetailsPage() {
   const { id } = useParams();
@@ -20,6 +22,7 @@ export default function AdminAccountDetailsPage() {
   const [details, setDetails] = useState<AdminAccountDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [newCardExpiryDate, setNewCardExpiryDate] = useState('');
 
   const loadDetails = useCallback(async () => {
     try {
@@ -53,6 +56,26 @@ export default function AdminAccountDetailsPage() {
       await loadDetails();
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Failed to change account status'));
+    }
+  }
+
+  async function handleAddCard(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+
+    const validationError = validateExpiryDate(newCardExpiryDate);
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    try {
+      await addCardToAccountRequest(accountId, newCardExpiryDate);
+      setNewCardExpiryDate('');
+      await loadDetails();
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to add card'));
     }
   }
 
@@ -92,6 +115,34 @@ export default function AdminAccountDetailsPage() {
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div className="section">
+            <h2>Add Card</h2>
+
+            <form onSubmit={handleAddCard}>
+              <input
+                type="text"
+                placeholder="MM/YY"
+                value={newCardExpiryDate}
+                onChange={(e) => {
+                  let value = e.target.value.replace(/[^\d]/g, '');
+
+                  if (value.length > 4) {
+                    value = value.slice(0, 4);
+                  }
+
+                  if (value.length >= 3) {
+                    value = `${value.slice(0, 2)}/${value.slice(2)}`;
+                  }
+
+                  setNewCardExpiryDate(value);
+                }}
+                maxLength={5}
+                required
+              />
+              <button type="submit">Add Card</button>
+            </form>
           </div>
 
           <div className="section">

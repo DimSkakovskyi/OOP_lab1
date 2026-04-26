@@ -37,3 +37,32 @@ export async function blockAccountRequest(accountId: number): Promise<void> {
 export async function unblockAccountRequest(accountId: number): Promise<void> {
   await api.patch(`/admin/accounts/${accountId}/unblock`);
 }
+
+export async function createClientRequest(login: string, password: string) {
+  const response = await api.post('/admin/users/create-client', {
+    login,
+    password,
+  });
+
+  return response.data;
+}
+
+export async function createAdminRequest(login: string, password: string) {
+  const response = await api.post('/admin/users/create-admin', {
+    login,
+    password,
+  });
+
+  return response.data;
+}
+
+export async function addCardToAccountRequest(
+  accountId: number,
+  expiryDate: string
+) {
+  const response = await api.post(`/admin/accounts/${accountId}/cards`, {
+    expiryDate,
+  });
+
+  return response.data;
+}

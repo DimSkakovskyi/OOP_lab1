@@ -41,10 +41,24 @@ router.patch(
 );
 
 router.post(
+  '/users/create-client',
+  authMiddleware,
+  roleMiddleware('ADMIN'),
+  AdminController.createClient
+);
+
+router.post(
   '/users/create-admin',
   authMiddleware,
   roleMiddleware('ADMIN'),
   AdminController.createAdmin
+);
+
+router.post(
+  '/accounts/:id/cards',
+  authMiddleware,
+  roleMiddleware('ADMIN'),
+  AdminController.addCardToAccount
 );
 
 export default router;

@@ -13,6 +13,7 @@ import HomeRedirect from './auth/HomeRedirect';
 import CardDetailsPage from './pages/CardDetailsPage';
 import AdminAccountDetailsPage from './pages/AdminAccountDetailsPage';
 import AdminCardDetailsPage from './pages/AdminCardDetailsPage';
+import AdminCreateUserPage from './pages/AdminCreateUserPage';
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
           <Route element={<AdminRoute />}>
             <Route path="/admin/accounts" element={<AdminAccountsPage />} />
             <Route path="/admin/accounts/:id" element={<AdminAccountDetailsPage />} />
+            <Route path="/admin/create-user" element={<AdminCreateUserPage />} />
             <Route
               path="/admin/accounts/:accountId/cards/:cardId"
               element={<AdminCardDetailsPage />}
