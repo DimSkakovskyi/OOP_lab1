@@ -13,6 +13,13 @@ router.get(
 );
 
 router.patch(
+  '/accounts/:id/block',
+  authMiddleware,
+  roleMiddleware('ADMIN'),
+  AdminController.blockAccount
+);
+
+router.patch(
   '/accounts/:id/unblock',
   authMiddleware,
   roleMiddleware('ADMIN'),

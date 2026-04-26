@@ -3,6 +3,7 @@ import { Account } from '../entities/Account';
 import { ApiError } from '../utils/apiError';
 
 export class AccountService {
+
   static async getUserAccounts(userId: number) {
     const accountRepository = AppDataSource.getRepository(Account);
   

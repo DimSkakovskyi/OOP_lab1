@@ -5,12 +5,33 @@ import { ApiError } from '../utils/apiError';
 import { hashPassword } from '../utils/password';
 
 export class AdminService {
-  static async getAllAccounts() {
+  static async getAllAccounts(search?: string) {
     const accountRepository = AppDataSource.getRepository(Account);
-
-    return accountRepository.find({
-      order: { id: 'ASC' },
-    });
+  
+    const query = accountRepository
+      .createQueryBuilder('account')
+      .leftJoinAndSelect('account.user', 'user')
+      .orderBy('account.id', 'ASC');
+  
+    if (search) {
+      query.andWhere('LOWER(user.login) LIKE LOWER(:search)', {
+        search: `%${search}%`,
+      });
+    }
+  
+    const accounts = await query.getMany();
+  
+    return accounts.map((account) => ({
+      id: account.id,
+      accountNumber: account.accountNumber,
+      balance: Number(account.balance),
+      isBlocked: account.isBlocked,
+      user: {
+        id: account.user.id,
+        login: account.user.login,
+        role: account.user.role,
+      },
+    }));
   }
 
   static async unblockAccount(accountId: number) {
@@ -54,5 +75,20 @@ export class AdminService {
       login: admin.login,
       role: admin.role,
     };
+  }
+
+  static async blockAccount(accountId: number) {
+    const accountRepository = AppDataSource.getRepository(Account);
+  
+    const account = await accountRepository.findOne({
+      where: { id: accountId },
+    });
+  
+    if (!account) {
+      throw new ApiError(404, 'Account not found');
+    }
+  
+    account.isBlocked = true;
+    return accountRepository.save(account);
   }
 }

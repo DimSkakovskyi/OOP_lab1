@@ -4,7 +4,19 @@ import { AdminService } from '../services/AdminService';
 export class AdminController {
   static async getAllAccounts(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await AdminService.getAllAccounts();
+      const search =
+        typeof req.query.search === 'string' ? req.query.search : undefined;
+  
+      const result = await AdminService.getAllAccounts(search);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async blockAccount(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await AdminService.blockAccount(Number(req.params.id));
       res.json(result);
     } catch (error) {
       next(error);
