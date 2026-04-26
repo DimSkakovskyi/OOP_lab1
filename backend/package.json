@@ -7,7 +7,8 @@
     "typeorm": "typeorm-ts-node-commonjs -d src/config/data-source.ts",
     "migration:generate": "npm run typeorm migration:generate src/migrations/InitMigration",
     "migration:run": "npm run typeorm migration:run",
-    "migration:revert": "npm run typeorm migration:revert"
+    "migration:revert": "npm run typeorm migration:revert",
+    "create:admin": "ts-node-dev --respawn --transpile-only src/scripts/createInitialAdmin.ts"
   },
   "prisma": {
     "schema": "src/prisma/schema.prisma"
