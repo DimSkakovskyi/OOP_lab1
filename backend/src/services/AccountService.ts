@@ -1,6 +1,7 @@
 import { AppDataSource } from '../config/data-source';
 import { Account } from '../entities/Account';
 import { ApiError } from '../utils/apiError';
+import { Card } from '../entities/Card';
 
 export class AccountService {
 
@@ -71,5 +72,72 @@ export class AccountService {
 
     account.isBlocked = true;
     return accountRepository.save(account);
+  }
+
+  static async getAccountCards(userId: number, accountId: number) {
+    const accountRepository = AppDataSource.getRepository(Account);
+    const cardRepository = AppDataSource.getRepository(Card);
+  
+    const account = await accountRepository.findOne({
+      where: { id: accountId },
+    });
+  
+    if (!account) {
+      throw new ApiError(404, 'Account not found');
+    }
+  
+    if (account.userId !== userId) {
+      throw new ApiError(403, 'Access denied');
+    }
+  
+    const cards = await cardRepository.find({
+      where: { accountId },
+      order: { id: 'ASC' },
+    });
+  
+    return cards.map((card) => ({
+      id: card.id,
+      cardNumber: card.cardNumber,
+      expiryDate: card.expiryDate,
+      accountId: card.accountId,
+    }));
+  }
+  
+  static async getCardDetails(userId: number, accountId: number, cardId: number) {
+    const accountRepository = AppDataSource.getRepository(Account);
+    const cardRepository = AppDataSource.getRepository(Card);
+  
+    const account = await accountRepository.findOne({
+      where: { id: accountId },
+    });
+  
+    if (!account) {
+      throw new ApiError(404, 'Account not found');
+    }
+  
+    if (account.userId !== userId) {
+      throw new ApiError(403, 'Access denied');
+    }
+  
+    const card = await cardRepository.findOne({
+      where: { id: cardId, accountId },
+    });
+  
+    if (!card) {
+      throw new ApiError(404, 'Card not found');
+    }
+  
+    return {
+      id: card.id,
+      cardNumber: card.cardNumber,
+      expiryDate: card.expiryDate,
+      accountId: card.accountId,
+      account: {
+        id: account.id,
+        accountNumber: account.accountNumber,
+        balance: Number(account.balance),
+        isBlocked: account.isBlocked,
+      },
+    };
   }
 }

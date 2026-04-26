@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
 import { getAccountDetailsRequest, blockAccountRequest } from '../api/accountApi';
-import { createPaymentRequest, createTopUpRequest } from '../api/paymentApi';
 import type { AccountDetails } from '../types/account';
 import { getErrorMessage } from '../utils/getErrorMessage';
 
@@ -18,24 +17,8 @@ export default function AccountDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const [paymentForm, setPaymentForm] = useState({
-    amount: '',
-    description: '',
-  });
-
-  const [topupForm, setTopupForm] = useState({
-    amount: '',
-    description: '',
-  });
-
   const loadDetails = useCallback(async () => {
     try {
-      if (Number.isNaN(accountId)) {
-        setError('Invalid account ID');
-        return;
-      }
-
-      setLoading(true);
       const data = await getAccountDetailsRequest(accountId);
       setDetails(data);
     } catch (err: unknown) {
@@ -46,42 +29,8 @@ export default function AccountDetailsPage() {
   }, [accountId]);
 
   useEffect(() => {
-    void loadDetails();
+    loadDetails();
   }, [loadDetails]);
-
-  async function handlePaymentSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError('');
-
-    try {
-      await createPaymentRequest(
-        accountId,
-        Number(paymentForm.amount),
-        paymentForm.description
-      );
-      setPaymentForm({ amount: '', description: '' });
-      await loadDetails();
-    } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Payment failed'));
-    }
-  }
-
-  async function handleTopUpSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError('');
-
-    try {
-      await createTopUpRequest(
-        accountId,
-        Number(topupForm.amount),
-        topupForm.description
-      );
-      setTopupForm({ amount: '', description: '' });
-      await loadDetails();
-    } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Top up failed'));
-    }
-  }
 
   async function handleBlock() {
     setError('');
@@ -122,62 +71,12 @@ export default function AccountDetailsPage() {
             <ul>
               {details.cards.map((card) => (
                 <li key={card.id}>
-                  {card.cardNumber} — {card.expiryDate}
+                  <Link to={`/accounts/${details.account.id}/cards/${card.id}`}>
+                    {card.cardNumber} — {card.expiryDate}
+                  </Link>
                 </li>
               ))}
             </ul>
-          </div>
-
-          <div className="section">
-            <h2>Make Payment</h2>
-            <form onSubmit={handlePaymentSubmit}>
-              <input
-                type="number"
-                step="0.01"
-                min="0.01"
-                placeholder="Amount"
-                value={paymentForm.amount}
-                onChange={(e) =>
-                  setPaymentForm({ ...paymentForm, amount: e.target.value })
-                }
-                required
-              />
-              <input
-                type="text"
-                placeholder="Description"
-                value={paymentForm.description}
-                onChange={(e) =>
-                  setPaymentForm({ ...paymentForm, description: e.target.value })
-                }
-              />
-              <button type="submit">Pay</button>
-            </form>
-          </div>
-
-          <div className="section">
-            <h2>Top Up Account</h2>
-            <form onSubmit={handleTopUpSubmit}>
-              <input
-                type="number"
-                step="0.01"
-                min="0.01"
-                placeholder="Amount"
-                value={topupForm.amount}
-                onChange={(e) =>
-                  setTopupForm({ ...topupForm, amount: e.target.value })
-                }
-                required
-              />
-              <input
-                type="text"
-                placeholder="Description"
-                value={topupForm.description}
-                onChange={(e) =>
-                  setTopupForm({ ...topupForm, description: e.target.value })
-                }
-              />
-              <button type="submit">Top Up</button>
-            </form>
           </div>
 
           <div className="section">
@@ -186,11 +85,11 @@ export default function AccountDetailsPage() {
           </div>
 
           <div className="section">
-            <h2>Payment History</h2>
+            <h2>Operation History</h2>
             <ul>
               {details.payments.map((payment) => (
                 <li key={payment.id}>
-                  {payment.type} — {payment.amount} — {payment.description} — {payment.createdAt}
+                  {payment.type} — {payment.amount} — {payment.description ?? 'No description'} — {payment.createdAt}
                 </li>
               ))}
             </ul>

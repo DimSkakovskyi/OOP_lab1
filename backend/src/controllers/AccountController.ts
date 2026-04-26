@@ -34,4 +34,29 @@ export class AccountController {
       next(error);
     }
   }
+
+  static async getAccountCards(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await AccountService.getAccountCards(
+        req.user!.id,
+        Number(req.params.id)
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+  static async getCardDetails(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await AccountService.getCardDetails(
+        req.user!.id,
+        Number(req.params.accountId),
+        Number(req.params.cardId)
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

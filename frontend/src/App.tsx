@@ -10,6 +10,7 @@ import AccountDetailsPage from './pages/AccountDetailsPage';
 import AdminAccountsPage from './pages/AdminAccountsPage';
 import NotFoundPage from './pages/NotFoundPage';
 import HomeRedirect from './auth/HomeRedirect';
+import CardDetailsPage from './pages/CardDetailsPage';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/accounts" element={<AccountsPage />} />
             <Route path="/accounts/:id" element={<AccountDetailsPage />} />
+            <Route path="/accounts/:accountId/cards/:cardId" element={<CardDetailsPage />} />
           </Route>
 
           <Route element={<AdminRoute />}>
