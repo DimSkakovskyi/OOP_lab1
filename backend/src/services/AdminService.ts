@@ -1,6 +1,8 @@
 import { AppDataSource } from '../config/data-source';
 import { Account } from '../entities/Account';
+import { User } from '../entities/User';
 import { ApiError } from '../utils/apiError';
+import { hashPassword } from '../utils/password';
 
 export class AdminService {
   static async getAllAccounts() {
@@ -24,5 +26,33 @@ export class AdminService {
 
     account.isBlocked = false;
     return accountRepository.save(account);
+  }
+
+  static async createAdmin(login: string, password: string) {
+    const userRepository = AppDataSource.getRepository(User);
+
+    const existingUser = await userRepository.findOne({
+      where: { login },
+    });
+
+    if (existingUser) {
+      throw new ApiError(400, 'User already exists');
+    }
+
+    const hashedPassword = await hashPassword(password);
+
+    const admin = userRepository.create({
+      login,
+      password: hashedPassword,
+      role: 'ADMIN',
+    });
+
+    await userRepository.save(admin);
+
+    return {
+      id: admin.id,
+      login: admin.login,
+      role: admin.role,
+    };
   }
 }

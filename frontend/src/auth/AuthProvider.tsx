@@ -22,12 +22,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => getToken());
   const [user, setUser] = useState<User | null>(() => {
     const storedToken = getToken();
-    return storedToken ? getStoredUser() : null;
+
+    if (!storedToken) {
+      localStorage.removeItem('user');
+      return null;
+    }
+
+    return getStoredUser();
   });
 
   const login = (newToken: string, newUser: User) => {
     saveToken(newToken);
     localStorage.setItem('user', JSON.stringify(newUser));
+
     setToken(newToken);
     setUser(newUser);
   };
@@ -35,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     removeToken();
     localStorage.removeItem('user');
+
     setToken(null);
     setUser(null);
   };
@@ -43,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       token,
-      isAuthenticated: Boolean(token),
+      isAuthenticated: Boolean(token && user),
       login,
       logout,
     }),

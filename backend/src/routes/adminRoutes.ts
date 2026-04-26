@@ -19,4 +19,11 @@ router.patch(
   AdminController.unblockAccount
 );
 
+router.post(
+  '/users/create-admin',
+  authMiddleware,
+  roleMiddleware('ADMIN'),
+  AdminController.createAdmin
+);
+
 export default router;

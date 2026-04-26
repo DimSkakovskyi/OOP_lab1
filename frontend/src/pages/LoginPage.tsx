@@ -1,39 +1,15 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import ErrorMessage from '../components/ErrorMessage';
 import { loginRequest } from '../api/authApi';
 import { hashPassword } from '../utils/hashPassword';
 import { useAuth } from '../auth/useAuth';
-
-type ApiError = {
-  response?: {
-    data?: {
-      message?: string;
-    };
-  };
-};
-
-function getErrorMessage(error: unknown): string {
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'response' in error
-  ) {
-    const apiError = error as ApiError;
-    return apiError.response?.data?.message || 'Login failed';
-  }
-
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return 'Login failed';
-}
+import { getErrorMessage } from '../utils/getErrorMessage';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
 
   const [form, setForm] = useState({
     login: '',
@@ -41,6 +17,15 @@ export default function LoginPage() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  if (isAuthenticated) {
+    return (
+      <Navigate
+        to={user?.role === 'ADMIN' ? '/admin/accounts' : '/accounts'}
+        replace
+      />
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

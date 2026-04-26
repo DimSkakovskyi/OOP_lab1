@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './auth/AuthProvider';
 import ProtectedRoute from './auth/ProtectedRoute';
 import AdminRoute from './auth/AdminRoute';
@@ -9,13 +9,14 @@ import AccountsPage from './pages/AccountsPage';
 import AccountDetailsPage from './pages/AccountDetailsPage';
 import AdminAccountsPage from './pages/AdminAccountsPage';
 import NotFoundPage from './pages/NotFoundPage';
+import HomeRedirect from './auth/HomeRedirect';
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<HomeRedirect />} />
 
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
