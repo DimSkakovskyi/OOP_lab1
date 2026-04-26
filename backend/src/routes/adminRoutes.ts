@@ -12,6 +12,20 @@ router.get(
   AdminController.getAllAccounts
 );
 
+router.get(
+  '/accounts/:id',
+  authMiddleware,
+  roleMiddleware('ADMIN'),
+  AdminController.getAccountDetails
+);
+
+router.get(
+  '/accounts/:accountId/cards/:cardId',
+  authMiddleware,
+  roleMiddleware('ADMIN'),
+  AdminController.getCardDetails
+);
+
 router.patch(
   '/accounts/:id/block',
   authMiddleware,

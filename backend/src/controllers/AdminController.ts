@@ -6,8 +6,29 @@ export class AdminController {
     try {
       const search =
         typeof req.query.search === 'string' ? req.query.search : undefined;
-  
+
       const result = await AdminService.getAllAccounts(search);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getAccountDetails(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await AdminService.getAccountDetails(Number(req.params.id));
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getCardDetails(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await AdminService.getCardDetails(
+        Number(req.params.accountId),
+        Number(req.params.cardId)
+      );
       res.json(result);
     } catch (error) {
       next(error);
@@ -35,9 +56,7 @@ export class AdminController {
   static async createAdmin(req: Request, res: Response, next: NextFunction) {
     try {
       const { login, password } = req.body;
-
       const result = await AdminService.createAdmin(login, password);
-
       res.status(201).json(result);
     } catch (error) {
       next(error);

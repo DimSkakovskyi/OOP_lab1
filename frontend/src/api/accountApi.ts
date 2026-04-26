@@ -1,8 +1,8 @@
 import api from './axios';
-import type { Account, AccountDetails, Card, CardDetails } from '../types/account';
+import type { UserAccount, AccountDetails, Card, CardDetails } from '../types/account';
 
-export async function getAccountsRequest(): Promise<Account[]> {
-  const response = await api.get<Account[]>('/accounts');
+export async function getAccountsRequest(): Promise<UserAccount[]> {
+  const response = await api.get<UserAccount[]>('/accounts');
   return response.data;
 }
 

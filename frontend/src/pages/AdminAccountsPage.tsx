@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
@@ -7,11 +8,11 @@ import {
   unblockAccountRequest,
   blockAccountRequest,
 } from '../api/adminApi';
-import type { Account } from '../types/account';
+import type { AdminAccount } from '../types/account';
 import { getErrorMessage } from '../utils/getErrorMessage';
 
 export default function AdminAccountsPage() {
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [accounts, setAccounts] = useState<AdminAccount[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -82,7 +83,10 @@ export default function AdminAccountsPage() {
           <div key={account.id} className="card">
             <p><strong>User Login:</strong> {account.user.login}</p>
             <p><strong>Account ID:</strong> {account.id}</p>
-            <p><strong>Account Number:</strong> {account.accountNumber}</p>
+            <p>
+              <strong>Account Number:</strong>{' '}
+              <Link to={`/admin/accounts/${account.id}`}>{account.accountNumber}</Link>
+            </p>
             <p><strong>Balance:</strong> {account.balance}</p>
             <p>
               <strong>Status:</strong>{' '}

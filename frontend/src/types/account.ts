@@ -1,21 +1,14 @@
+export interface AccountUser {
+  id: number;
+  login: string;
+  role: 'CLIENT' | 'ADMIN';
+}
+
 export interface Card {
   id: number;
   cardNumber: string;
   expiryDate: string;
   accountId: number;
-}
-
-export interface Account {
-  id: number;
-  accountNumber: string;
-  balance: number;
-  isBlocked: boolean;
-}
-
-export interface AccountDetails {
-  account: Account;
-  cards: Card[];
-  payments: Payment[];
 }
 
 export interface Payment {
@@ -26,24 +19,45 @@ export interface Payment {
   createdAt: string;
 }
 
-export interface CardDetails {
+export interface UserAccount {
   id: number;
-  cardNumber: string;
-  expiryDate: string;
-  accountId: number;
-  account: Account;
+  accountNumber: string;
+  balance: number;
+  isBlocked: boolean;
 }
 
-export interface AccountUser {
-  id: number;
-  login: string;
-  role: 'CLIENT' | 'ADMIN';
-}
-
-export interface Account {
+export interface AdminAccount {
   id: number;
   accountNumber: string;
   balance: number;
   isBlocked: boolean;
   user: AccountUser;
+}
+
+export interface AccountDetails {
+  account: UserAccount;
+  cards: Card[];
+  payments: Payment[];
+}
+
+export interface AdminAccountDetails {
+  account: AdminAccount;
+  cards: Card[];
+  payments: Payment[];
+}
+
+export interface CardDetails {
+  id: number;
+  cardNumber: string;
+  expiryDate: string;
+  accountId: number;
+  account: UserAccount;
+}
+
+export interface AdminCardDetails {
+  id: number;
+  cardNumber: string;
+  expiryDate: string;
+  accountId: number;
+  account: AdminAccount;
 }
