@@ -1,5 +1,6 @@
 import api from './axios';
 import type {
+  Payment,
   AdminAccount,
   AdminAccountDetails,
   AdminCardDetails,
@@ -63,6 +64,17 @@ export async function addCardToAccountRequest(
   const response = await api.post(`/admin/accounts/${accountId}/cards`, {
     expiryDate,
   });
+
+  return response.data;
+}
+
+export async function getAdminCardTransferHistoryRequest(
+  accountId: number,
+  cardId: number
+): Promise<Payment[]> {
+  const response = await api.get<Payment[]>(
+    `/admin/accounts/${accountId}/cards/${cardId}/history`
+  );
 
   return response.data;
 }

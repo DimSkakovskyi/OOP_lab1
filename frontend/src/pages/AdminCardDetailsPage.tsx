@@ -3,8 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
-import { getAdminCardDetailsRequest } from '../api/adminApi';
-import type { AdminCardDetails } from '../types/account';
+import {
+  getAdminCardDetailsRequest,
+  getAdminCardTransferHistoryRequest,
+} from '../api/adminApi';
+import type { AdminCardDetails, Payment } from '../types/account';
 import { getErrorMessage } from '../utils/getErrorMessage';
 
 export default function AdminCardDetailsPage() {
@@ -15,13 +18,19 @@ export default function AdminCardDetailsPage() {
   const numericCardId = Number(cardId);
 
   const [card, setCard] = useState<AdminCardDetails | null>(null);
+  const [history, setHistory] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const loadCard = useCallback(async () => {
     try {
-      const data = await getAdminCardDetailsRequest(numericAccountId, numericCardId);
-      setCard(data);
+      const [cardData, historyData] = await Promise.all([
+        getAdminCardDetailsRequest(numericAccountId, numericCardId),
+        getAdminCardTransferHistoryRequest(numericAccountId, numericCardId),
+      ]);
+
+      setCard(cardData);
+      setHistory(historyData);
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Failed to load admin card details'));
     } finally {
@@ -48,9 +57,11 @@ export default function AdminCardDetailsPage() {
 
           <div className="section">
             <p><strong>User Login:</strong> {card.account.user.login}</p>
+            <p><strong>User Role:</strong> {card.account.user.role}</p>
             <p><strong>Card ID:</strong> {card.id}</p>
             <p><strong>Card Number:</strong> {card.cardNumber}</p>
             <p><strong>Expiry Date:</strong> {card.expiryDate}</p>
+            <p><strong>Account ID:</strong> {card.account.id}</p>
             <p><strong>Account Number:</strong> {card.account.accountNumber}</p>
             <p><strong>Account Balance:</strong> {card.account.balance}</p>
             <p>
@@ -59,6 +70,22 @@ export default function AdminCardDetailsPage() {
                 {card.account.isBlocked ? 'Blocked' : 'Active'}
               </span>
             </p>
+          </div>
+
+          <div className="section">
+            <h2>Transfer History</h2>
+
+            {history.length === 0 ? (
+              <p>No transfers yet</p>
+            ) : (
+              <ul>
+                {history.map((payment) => (
+                  <li key={payment.id}>
+                    {payment.type} — {payment.amount} — {payment.description ?? 'No description'} — {payment.createdAt}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </>
       )}

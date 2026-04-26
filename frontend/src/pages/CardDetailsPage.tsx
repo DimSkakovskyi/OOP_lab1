@@ -3,10 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
-import { getCardDetailsRequest } from '../api/accountApi';
+import { getCardDetailsRequest, getCardTransferHistoryRequest } from '../api/accountApi';
 import { createTransferRequest } from '../api/transferApi';
-import type { CardDetails } from '../types/account';
+import type { CardDetails, Payment } from '../types/account';
 import { getErrorMessage } from '../utils/getErrorMessage';
+
 
 export default function CardDetailsPage() {
   const { accountId, cardId } = useParams();
@@ -16,6 +17,7 @@ export default function CardDetailsPage() {
   const numericCardId = Number(cardId);
 
   const [card, setCard] = useState<CardDetails | null>(null);
+  const [history, setHistory] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -27,8 +29,13 @@ export default function CardDetailsPage() {
 
   const loadCard = useCallback(async () => {
     try {
-      const data = await getCardDetailsRequest(numericAccountId, numericCardId);
-      setCard(data);
+      const [cardData, historyData] = await Promise.all([
+        getCardDetailsRequest(numericAccountId, numericCardId),
+        getCardTransferHistoryRequest(numericAccountId, numericCardId),
+      ]);
+
+      setCard(cardData);
+      setHistory(historyData);
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Failed to load card details'));
     } finally {
@@ -123,6 +130,22 @@ export default function CardDetailsPage() {
 
               <button type="submit">Transfer</button>
             </form>
+          </div>
+
+          <div className="section">
+            <h2>Transfer History</h2>
+
+            {history.length === 0 ? (
+              <p>No transfers yet</p>
+            ) : (
+              <ul>
+                {history.map((payment) => (
+                  <li key={payment.id}>
+                    {payment.type} — {payment.amount} — {payment.description ?? 'No description'} — {payment.createdAt}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </>
       )}

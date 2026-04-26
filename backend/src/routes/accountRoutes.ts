@@ -9,5 +9,10 @@ router.get('/:id', authMiddleware, AccountController.getAccountDetails);
 router.get('/:id/cards', authMiddleware, AccountController.getAccountCards);
 router.get('/:accountId/cards/:cardId', authMiddleware, AccountController.getCardDetails);
 router.patch('/:id/block', authMiddleware, AccountController.blockAccount);
+router.get(
+  '/:accountId/cards/:cardId/history',
+  authMiddleware,
+  AccountController.getCardTransferHistory
+);
 
 export default router;

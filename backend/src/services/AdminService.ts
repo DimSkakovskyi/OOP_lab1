@@ -2,6 +2,7 @@ import { AppDataSource } from '../config/data-source';
 import { Account } from '../entities/Account';
 import { Card } from '../entities/Card';
 import { ApiError } from '../utils/apiError';
+import { Payment } from '../entities/Payment';
 
 import { User } from '../entities/User';
 import { hashPassword, hashPasswordLikeFrontend, generateAccountNumber, generateCardNumber } from '../utils/password';
@@ -115,6 +116,47 @@ export class AdminService {
         },
       },
     };
+  }
+
+  static async getCardTransferHistory(accountId: number, cardId: number) {
+    const accountRepository = AppDataSource.getRepository(Account);
+    const cardRepository = AppDataSource.getRepository(Card);
+    const paymentRepository = AppDataSource.getRepository(Payment);
+  
+    const account = await accountRepository.findOne({
+      where: { id: accountId },
+      relations: ['user'],
+    });
+  
+    if (!account) {
+      throw new ApiError(404, 'Account not found');
+    }
+  
+    const card = await cardRepository.findOne({
+      where: { id: cardId, accountId },
+    });
+  
+    if (!card) {
+      throw new ApiError(404, 'Card not found');
+    }
+  
+    const payments = await paymentRepository.find({
+      where: [
+        { sourceCardId: cardId },
+        { destinationCardId: cardId },
+      ],
+      order: { createdAt: 'DESC' },
+    });
+  
+    return payments.map((payment) => ({
+      id: payment.id,
+      amount: Number(payment.amount),
+      type: payment.type,
+      description: payment.description,
+      createdAt: payment.createdAt,
+      sourceCardId: payment.sourceCardId,
+      destinationCardId: payment.destinationCardId,
+    }));
   }
 
   static async blockAccount(accountId: number) {

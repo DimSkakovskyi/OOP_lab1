@@ -84,13 +84,17 @@ export class TransferService {
         amount,
         type: 'PAYMENT',
         description: description || `Transfer to ${toCard.cardNumber}`,
+        sourceCardId: fromCard.id,
+        destinationCardId: toCard.id,
       });
-
+      
       const incomingPayment = paymentRepository.create({
         accountId: toAccount.id,
         amount,
         type: 'TOPUP',
         description: description || `Transfer from ${fromCard.cardNumber}`,
+        sourceCardId: fromCard.id,
+        destinationCardId: toCard.id,
       });
 
       await paymentRepository.save(outgoingPayment);

@@ -59,4 +59,18 @@ export class AccountController {
       next(error);
     }
   }
+
+  static async getCardTransferHistory(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await AccountService.getCardTransferHistory(
+        req.user!.id,
+        Number(req.params.accountId),
+        Number(req.params.cardId)
+      );
+  
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

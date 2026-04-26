@@ -33,4 +33,10 @@ export class Payment {
   @ManyToOne(() => Account, (account) => account.payments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'account_id' })
   account!: Account;
+
+  @Column({ name: 'source_card_id', type: 'int', nullable: true })
+sourceCardId!: number | null;
+
+@Column({ name: 'destination_card_id', type: 'int', nullable: true })
+destinationCardId!: number | null;
 }

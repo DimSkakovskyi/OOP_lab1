@@ -1,5 +1,5 @@
 import api from './axios';
-import type { UserAccount, AccountDetails, Card, CardDetails } from '../types/account';
+import type { UserAccount, AccountDetails, Card, CardDetails, Payment } from '../types/account';
 
 export async function getAccountsRequest(): Promise<UserAccount[]> {
   const response = await api.get<UserAccount[]>('/accounts');
@@ -23,4 +23,15 @@ export async function getCardDetailsRequest(accountId: number, cardId: number): 
 
 export async function blockAccountRequest(accountId: number): Promise<void> {
   await api.patch(`/accounts/${accountId}/block`);
+}
+
+export async function getCardTransferHistoryRequest(
+  accountId: number,
+  cardId: number
+): Promise<Payment[]> {
+  const response = await api.get<Payment[]>(
+    `/accounts/${accountId}/cards/${cardId}/history`
+  );
+
+  return response.data;
 }

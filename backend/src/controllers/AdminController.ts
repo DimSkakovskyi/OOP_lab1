@@ -85,4 +85,17 @@ export class AdminController {
       next(error);
     }
   }
+
+  static async getCardTransferHistory(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await AdminService.getCardTransferHistory(
+        Number(req.params.accountId),
+        Number(req.params.cardId)
+      );
+  
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

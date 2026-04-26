@@ -26,6 +26,13 @@ router.get(
   AdminController.getCardDetails
 );
 
+router.get(
+  '/accounts/:accountId/cards/:cardId/history',
+  authMiddleware,
+  roleMiddleware('ADMIN'),
+  AdminController.getCardTransferHistory
+);
+
 router.patch(
   '/accounts/:id/block',
   authMiddleware,
